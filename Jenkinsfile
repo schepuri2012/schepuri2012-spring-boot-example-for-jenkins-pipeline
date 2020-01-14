@@ -43,11 +43,6 @@ pipeline {
                     string(credentialsId: 'JENKINS_IMMPORT_AWS_ACCESS_KEY', variable: 'codeDeployAccessKey'),
                     string(credentialsId: 'JENKINS_IMMPORT_AWS_SECRET_KEY', variable: 'codeDeploySecretKey')]) {
 
-                    // script {
-                    //     def codeDeployAccessKey = codeDeployAccessKey;
-                    //     def codeDeploySecretKey = codeDeploySecretKey; 
-                    // }
-
                     step([
                         $class: 'AWSCodeDeployPublisher', 
                         applicationName: 'spring-boot-example-for-jenkins-pipeline', 
@@ -59,7 +54,7 @@ pipeline {
                         deploymentGroupName: 'spring-boot-example-for-jenkins-pipeline-DepGrp', 
                         excludes: '', 
                         iamRoleArn: '', 
-                        includes: 'codedeploy/**', 
+                        includes: '**', 
                         proxyHost: '', 
                         proxyPort: 0, 
                         region: 'us-east-2', 
