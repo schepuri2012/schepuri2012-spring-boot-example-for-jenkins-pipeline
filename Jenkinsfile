@@ -39,19 +39,14 @@ pipeline {
         stage('AWS Codedeploy') {
             steps {
                 
-                sh '''
-                    pwd
-                    cp build/distributions/*.zip codedeploy/files/.
-                '''                
-                // step([$class: 'AWSCodeDeployPublisher', applicationName: 'spring-boot-example-for-jenkins-pipeline', awsAccessKey: $JENKINS_IMMPORT_AWS_ACCESS_KEY, awsSecretKey: <object of type hudson.util.Secret>, credentials: 'awsAccessKey', deploymentConfig: 'CodeDeployDefault.AllAtOnce', deploymentGroupAppspec: false, deploymentGroupName: 'spring-boot-example-for-jenkins-pipeline-DepGrp', excludes: '', iamRoleArn: '', includes: '**', proxyHost: '', proxyPort: 0, region: 'us-east-2', s3bucket: 'cicdstackdemo-codedeploybucket-lfklwjvjb8s1', s3prefix: '', subdirectory: '', versionFileName: '', waitForCompletion: false])
 			    withCredentials([
                     string(credentialsId: 'JENKINS_IMMPORT_AWS_ACCESS_KEY', variable: 'codeDeployAccessKey'),
                     string(credentialsId: 'JENKINS_IMMPORT_AWS_SECRET_KEY', variable: 'codeDeploySecretKey')]) {
 
-                    script {
-                        def codeDeployAccessKey = codeDeployAccessKey;
-                        def codeDeploySecretKey = codeDeploySecretKey; 
-                    }
+                    // script {
+                    //     def codeDeployAccessKey = codeDeployAccessKey;
+                    //     def codeDeploySecretKey = codeDeploySecretKey; 
+                    // }
 
                     step([
                         $class: 'AWSCodeDeployPublisher', 

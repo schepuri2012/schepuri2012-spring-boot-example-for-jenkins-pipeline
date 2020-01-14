@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 
 files:
-  - source: ./files
+  - source: ./build/distributions
     destination: /home/ec2-user/apps/
 
 permissions:
@@ -13,14 +13,14 @@ permissions:
 
 hooks:
   ApplicationStop:
-    - location: scripts/server_stop.sh
+    - location: codedeploy/scripts/server_stop.sh
       timeout: 20
       runas: ec2-user
   BeforeInstall:
-    - location: scripts/beforeInstall.sh
+    - location: codedeploy/scripts/beforeInstall.sh
   AfterInstall:
-    - location: scripts/afterInstall.sh
+    - location: codedeploy/scripts/afterInstall.sh
   ApplicationStart:
-    - location: scripts/server_start.sh
+    - location: codedeploy/scripts/server_start.sh
       timeout: 20
       runas: ec2-user
