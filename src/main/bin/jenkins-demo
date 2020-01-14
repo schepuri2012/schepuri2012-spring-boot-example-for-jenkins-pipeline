@@ -1,0 +1,172 @@
+#!/bin/bash
+
+USER=`id | sed -e 's/^[^(]*(\([^(]*\)).*$/\1/'`
+APP_USER=immport
+if
+    [ "$USER" = "root" ]
+then
+    #
+    # The name of the script executed by root on CentOS 7.X is /etc/rc.$APP_NAME
+    #
+    APP_NAME=`basename $0 | sed -e 's/^[SK][0-9][0-9]*//' | sed -e 's/^rc\.//'`
+else
+    APP_NAME=`basename $0`
+    if
+      [ "$USER" != "" ]
+    then
+      APP_USER="$USER"
+    else
+      if
+        [ "$user" != "" ]
+      then
+        APP_USER="$user"
+      fi
+    fi
+fi
+
+echo "Java Version `java -version`"
+
+CONFIG_DIR=/home/$APP_USER/config/${APP_NAME}
+CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
+
+APP_DIR=/home/$APP_USER/apps/${APP_NAME}
+APP_ENV_FILE=${APP_DIR}/bin/setenv.sh
+JAR_FILE=${APP_DIR}/lib/${APP_NAME}.jar
+LOG_DIR=${APP_DIR}/logs
+LOG_FILE=${LOG_DIR}/${APP_NAME}.log
+
+JAVA_OPTIONS="-Xmx8196m"
+JAVA_COMMAND="java $JAVA_OPTIONS -jar ${JAR_FILE}"
+
+SHUTDOWN_WAIT=45
+
+#
+# Set up the environment for this application if necessary
+#
+if
+    [ -f ${CONFIG_ENV_FILE} ]
+then
+    JAVA_COMMAND=". ${CONFIG_ENV_FILE} ; ${JAVA_COMMAND}"
+else
+    if
+        [ -f ${APP_ENV_FILE} ]
+    then
+        JAVA_COMMAND=". ${APP_ENV_FILE} ; ${JAVA_COMMAND}"
+    fi
+fi
+
+pid() {
+    echo `ps aux --user $APP_USER --width=1024 | fgrep java | fgrep -v fgrep | fgrep $APP_NAME | fgrep -v setenv.sh | awk '{ print $2 }'`
+}
+
+start() {
+
+    pid=$(pid)
+    if
+        [ -n "$pid" ]
+    then
+        echo "Application $APP_NAME is already running (pid: $pid)."
+    else
+        #
+        # Create the log directory if necessary
+        #
+        if
+            [ ! -d $LOG_DIR ]
+        then
+            mkdir -p $LOG_DIR
+            if
+                [ "$USER" = "root" ]
+            then
+                chown ${APP_USER}:${APP_USER} $LOG_DIR
+            fi
+        fi
+
+        if
+          [ -f $LOG_FILE ]
+        then
+          timestamp=`date '+%Y%m%d%H%M%S'`
+          mv $LOG_FILE $LOG_FILE.${timestamp}
+        fi
+        touch $LOG_FILE
+        chown ${APP_USER}:${APP_USER} $LOG_FILE
+
+        #
+        # Start the application
+        #
+        echo "Starting $APP_NAME"
+        if
+            [ "$USER" = "root" ]
+        then
+            /bin/su - -c "$JAVA_COMMAND" $APP_USER 2>>$LOG_FILE >>$LOG_FILE &
+        else
+            eval "$JAVA_COMMAND" 2>>$LOG_FILE >>$LOG_FILE &
+        fi
+    fi
+    return 0
+}
+
+stop() {
+    pid=$(pid)
+    if
+        [ -n "$pid" ]
+    then
+        echo "Stopping $APP_NAME"
+        kill $pid
+
+        let kwait=$SHUTDOWN_WAIT
+        count=0
+        count_by=5
+        until
+            [ `ps -p $pid | grep -c $pid` = '0' ] || [ $count -gt $kwait ]
+        do
+            echo "Waiting for process to exit.  Timeout before killing the pid: ${count}/${kwait}."
+            sleep $count_by
+            let count=$count+$count_by;
+        done
+
+        if
+            [ $count -gt $kwait ]
+        then
+            echo "Killing process which didn't stop after $SHUTDOWN_WAIT seconds."
+            kill -9 $pid
+        fi
+    else
+        echo "Application $APP_NAME is not running."
+    fi
+
+    return 0
+}
+
+case $1 in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    status)
+       pid=$(pid)
+        if
+            [ -n "$pid" ]
+        then
+            command="ps -ef | awk '{ if (\$2 == $pid) print }'"
+            echo ""
+            eval "$command"
+            echo ""
+        else
+           echo "Application $APP_NAME is not running."
+        fi
+        ;;
+    *)
+        echo ""
+        echo "usage: `basename $0` start | stop | restart | status"
+        echo ""
+        exit 1
+        ;;
+esac
+
+exit 0
