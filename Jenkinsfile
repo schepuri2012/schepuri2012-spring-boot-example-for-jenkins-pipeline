@@ -40,6 +40,13 @@ pipeline {
         stage('AWS Codedeploy') {
             steps {
                 sh 'printenv'
+                script {
+                    def props = readProperties file:'build/resources/main/git.properties';
+                    env['IMMPORT_JENKINS_PROJECT_NAME'] = props['project_name'];
+                    env['IMMPORT_JENKINS_PROJECT_VERSION'] = props['project_version'];
+                    echo $IMMPORT_JENKINS_PROJECT_NAME
+                    echo $IMMPORT_JENKINS_PROJECT_VERSION
+                }
 			    withCredentials([
                     string(credentialsId: 'JENKINS_IMMPORT_AWS_ACCESS_KEY', variable: 'codeDeployAccessKey'),
                     string(credentialsId: 'JENKINS_IMMPORT_AWS_SECRET_KEY', variable: 'codeDeploySecretKey')]) {
