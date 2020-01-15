@@ -26,17 +26,17 @@ pipeline {
                 sh './gradlew --no-daemon build -x test'
             }
         }
-        stage('Test') {
-            steps {
-                sh './gradlew --no-daemon test'
-            }
-        }        
-        stage('Publish to Nexus') {
-            steps {
-                sh './gradlew --no-daemon publishArtifactPublicationToRemoteRepository'
-                sh 'printenv'
-            }
-        }
+        // stage('Test') {
+        //     steps {
+        //         sh './gradlew --no-daemon test'
+        //     }
+        // }        
+        // stage('Publish to Nexus') {
+        //     steps {
+        //         sh './gradlew --no-daemon publishArtifactPublicationToRemoteRepository'
+        //         sh 'printenv'
+        //     }
+        // }
         stage('AWS Codedeploy') {
             steps {
                 sh 'printenv'
@@ -44,8 +44,8 @@ pipeline {
                     echo 'reading properties'
                     def props = readProperties file:'build/resources/main/git.properties';
                     echo 'after reading properties'
-                    env['IMMPORT_JENKINS_PROJECT_NAME'] = props['project_name'];
-                    env['IMMPORT_JENKINS_PROJECT_VERSION'] = props['project_version'];
+                    export IMMPORT_JENKINS_PROJECT_NAME = props['project_name'];
+                    export IMMPORT_JENKINS_PROJECT_VERSION = props['project_version'];
                     echo 'after reading properties1'
                     echo $IMMPORT_JENKINS_PROJECT_NAME
                     echo 'after reading properties2'
