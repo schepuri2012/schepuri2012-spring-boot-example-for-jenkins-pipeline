@@ -34,11 +34,12 @@ pipeline {
         stage('Publish to Nexus') {
             steps {
                 sh './gradlew --no-daemon publishArtifactPublicationToRemoteRepository'
+                sh 'printenv'
             }
         }
         stage('AWS Codedeploy') {
             steps {
-                
+                sh 'printenv'
 			    withCredentials([
                     string(credentialsId: 'JENKINS_IMMPORT_AWS_ACCESS_KEY', variable: 'codeDeployAccessKey'),
                     string(credentialsId: 'JENKINS_IMMPORT_AWS_SECRET_KEY', variable: 'codeDeploySecretKey')]) {
