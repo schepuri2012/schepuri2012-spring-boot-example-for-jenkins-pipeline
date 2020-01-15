@@ -44,8 +44,8 @@ pipeline {
                     echo 'reading properties'
                     def props = readProperties file:'build/resources/main/git.properties';
                     echo 'after reading properties'
-                    export IMMPORT_JENKINS_PROJECT_NAME = props['project_name'];
-                    export IMMPORT_JENKINS_PROJECT_VERSION = props['project_version'];
+                    env.IMMPORT_JENKINS_PROJECT_NAME = props['project_name'];
+                    env.IMMPORT_JENKINS_PROJECT_VERSION = props['project_version'];
                     echo 'after reading properties1'
                     echo $IMMPORT_JENKINS_PROJECT_NAME
                     echo 'after reading properties2'
